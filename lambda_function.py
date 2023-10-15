@@ -1,6 +1,7 @@
 import json
 import psycopg2
 import os
+import time 
 
 print('Loading function')
  # Get environment variables
@@ -33,16 +34,17 @@ def lambda_handler(event, context):
 def process_status_update(status_msg):
     username = status_msg["accountUuid"]
     status = status_msg["seekingJob"]
-    update_time = status_msg["sendTime"]
-    update_job_app_status(username, status, update_time)
+    update_time_ms = time.ctime(status_msg["sendTimestamp"]/1000)
+
+    update_job_app_status(username, status, update_time_ms)
    
 
 def update_job_app_status(username, status, update_time):
       with connection.cursor() as cursor:
         cursor.execute("""
         UPDATE sjmsjob.job_application
-        SET seeker_status = %(status)s
-        WHERE user_id = %(username)s""", {
+        SET seeker_status = %(status)s, seeker_status_last_updated_date=%(update_time)s
+        WHERE user_id = %(username)s AND (seeker_status_last_updated_date IS NULL OR seeker_status_last_updated_date < %(update_time)s)""", {
            'username': username,
            'status': status,
            'update_time': update_time
