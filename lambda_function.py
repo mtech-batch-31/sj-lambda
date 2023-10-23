@@ -22,7 +22,8 @@ def lambda_handler(event, context):
     #Loops through every file uploaded
     for record in event['Records']:
         jsonbody=(record["body"])
-        status_update=json.loads(jsonbody)
+        notificationMsg=json.loads(jsonbody)
+        status_update=json.loads(notificationMsg["Message"])
         print(status_update)
         process_status_update(status_update)
 
